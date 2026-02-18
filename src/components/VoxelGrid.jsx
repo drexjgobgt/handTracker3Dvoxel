@@ -6,7 +6,7 @@ import { parseVoxelKey } from '../utils/voxelMath';
  * VoxelGrid component
  * Renders all placed voxels using instanced mesh for performance
  */
-const VoxelGrid = ({ voxels, cursorPosition, gridSize = 16, currentColor }) => {
+const VoxelGrid = ({ voxels, cursorPosition, gridSize = 16, currentColor, mode = 'build' }) => {
   const meshRef = useRef();
   const cursorRef = useRef();
   const tempMatrix = new THREE.Matrix4();
@@ -65,16 +65,25 @@ const VoxelGrid = ({ voxels, cursorPosition, gridSize = 16, currentColor }) => {
         </instancedMesh>
       )}
       
-      {/* Cursor preview */}
+      {/* Cursor preview - different styles for build/delete modes */}
       {cursorPosition && (
         <mesh ref={cursorRef}>
           <boxGeometry args={[0.95, 0.95, 0.95]} />
-          <meshStandardMaterial 
-            color={currentColor} 
-            transparent 
-            opacity={0.5}
-            wireframe={false}
-          />
+          {mode === 'build' ? (
+            <meshStandardMaterial 
+              color={currentColor} 
+              transparent 
+              opacity={0.5}
+              wireframe={false}
+            />
+          ) : (
+            <meshStandardMaterial 
+              color="#EF4444" 
+              transparent 
+              opacity={0.7}
+              wireframe={true}
+            />
+          )}
         </mesh>
       )}
     </group>

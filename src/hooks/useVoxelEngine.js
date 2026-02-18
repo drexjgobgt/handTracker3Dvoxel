@@ -68,6 +68,70 @@ export const useVoxelEngine = (initialGridSize = 16) => {
     setVoxels(newVoxels);
   }, []);
 
+  // Save to localStorage
+  const saveToLocalStorage = useCallback(() => {
+    const data = exportVoxels();
+    const saveData = {
+      version: '1.0',
+      gridSize,
+      voxels: data,
+      timestamp: Date.now()
+    };
+    localStorage.setItem('voxelWorld', JSON.stringify(saveData));
+    return true;
+  }, [exportVoxels, gridSize]);
+
+  // Load from localStorage
+  const loadFromLocalStorage = useCallback(() => {
+    const saved = localStorage.getItem('voxelWorld');
+    if (!saved) return false;
+    
+    try {
+      const saveData = JSON.parse(saved);
+      if (saveData.version === '1.0') {
+        importVoxels(saveData.voxels);
+        return true;
+      }
+    } catch (error) {
+      console.error('Failed to load voxel world:', error);
+    }
+    return false;
+  }, [importVoxels]);
+
+  // Export as JSON file
+  const exportToFile = useCallback(() => {
+    const data = exportVoxels();
+    const saveData = {
+      version: '1.0',
+      gridSize,
+      voxels: data,
+      timestamp: Date.now()
+    };
+    const blob = new Blob([JSON.stringify(saveData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `voxel-world-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [exportVoxels, gridSize]);
+
+  // Import from JSON file
+  const importFromFile = useCallback((file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const saveData = JSON.parse(e.target.result);
+        if (saveData.version === '1.0') {
+          importVoxels(saveData.voxels);
+        }
+      } catch (error) {
+        console.error('Failed to import voxel world:', error);
+      }
+    };
+    reader.readAsText(file);
+  }, [importVoxels]);
+
   return {
     voxels,
     gridSize,
@@ -80,6 +144,10 @@ export const useVoxelEngine = (initialGridSize = 16) => {
     clearAll,
     exportVoxels,
     importVoxels,
+    saveToLocalStorage,
+    loadFromLocalStorage,
+    exportToFile,
+    importFromFile,
     voxelCount: voxels.size
   };
 };
